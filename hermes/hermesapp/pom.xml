@@ -78,6 +78,7 @@
                             </excludes>
                         </filter>
                     </filters>
+                    <finalName>hermes-${version}</finalName>
                 </configuration>
                 <executions>
                     <execution>
