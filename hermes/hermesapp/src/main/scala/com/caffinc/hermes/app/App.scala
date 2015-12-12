@@ -1,8 +1,8 @@
 package com.caffinc.hermes.app
 
 /**
-  * Hello world!
-  *
+  * Hermes Application
+  * @author Sriram
   */
 object App extends App {
   println("Hermes v0.1")
