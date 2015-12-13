@@ -1,5 +1,7 @@
 package com.caffinc.hermes.common.utils
 
+import java.net.UnknownHostException
+
 import com.mongodb.{DB, MongoClient, MongoClientURI}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
@@ -10,32 +12,37 @@ import com.typesafe.scalalogging.LazyLogging
   */
 object MongoConnector extends LazyLogging {
   private val MONGO_DEFAULT: String = ConfigFactory.load().getString("mongo.connection")
-  private val CLIENT_MAP: java.util.Map[String, MongoClient] = new java.util.HashMap[String, MongoClient]
-  private val DB_MAP: java.util.Map[String, DB] = new java.util.HashMap[String, DB]
+  private var clients = scala.collection.mutable.Map[String, MongoClient]()
+  private val DB_MAP = scala.collection.mutable.Map[String, DB]()
 
   /**
     * Returns a MongoClient for a mongo URI
     * @param mongoConnection MongoConnection String
     * @return
     */
-  def getClient(mongoConnection: String): MongoClient = {
-    if (!CLIENT_MAP.containsKey(mongoConnection)) {
+  def getClient(mongoConnection: String): Option[MongoClient] = {
+    if (!clients.contains(mongoConnection)) {
       logger.info("Request for a new Client @ " + mongoConnection)
-      CLIENT_MAP synchronized {
-        if (!CLIENT_MAP.containsKey(mongoConnection)) {
+      clients synchronized {
+        if (!clients.contains(mongoConnection)) {
           logger.info("Obtaining Client @ " + mongoConnection)
-          CLIENT_MAP.put(mongoConnection, new MongoClient(new MongoClientURI(mongoConnection)))
+          try {
+            clients += (mongoConnection -> new MongoClient(new MongoClientURI(mongoConnection)))
+          } catch {
+            case e: UnknownHostException =>
+              logger.error("Could not connect to MongoDB", e)
+          }
         }
       }
     }
-    CLIENT_MAP.get(mongoConnection)
+    clients.get(mongoConnection)
   }
 
   /**
     * Returns the MongoClient for the URI picked from the config
     * @return
     */
-  def getClient: MongoClient = {
+  def getClient: Option[MongoClient] = {
     getClient(MONGO_DEFAULT)
   }
 
@@ -44,13 +51,18 @@ object MongoConnector extends LazyLogging {
     * @param dbName Database name to fetch
     * @return
     */
-  def getDB(dbName: String): DB = {
-    if (!DB_MAP.containsKey(dbName)) {
+  def getDB(dbName: String): Option[DB] = {
+    if (!DB_MAP.contains(dbName)) {
       logger.info("Request for a new DB @ " + dbName)
       DB_MAP synchronized {
-        if (!DB_MAP.containsKey(dbName)) {
+        if (!DB_MAP.contains(dbName)) {
           logger.info("Obtaining DB @ " + dbName)
-          DB_MAP.put(dbName, getClient.getDB(dbName))
+          getClient match {
+            case Some(client) =>
+              DB_MAP += (dbName -> client.getDB(dbName))
+            case None =>
+              // Do nothing
+          }
         }
       }
     }

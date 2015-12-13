@@ -11,6 +11,7 @@
     <modules>
         <module>common</module>
         <module>hermesapp</module>
+        <module>email</module>
     </modules>
 
     <repositories>
@@ -30,23 +31,25 @@
     </pluginRepositories>
 
     <properties>
-        <scala.version>2.11.7</scala.version>
-        <scalatest.version>2.2.4</scalatest.version>
-        <config.version>1.0.2</config.version>
+        <scala-version>2.11.7</scala-version>
+        <scalatest-version>2.2.4</scalatest-version>
+        <config-version>1.0.2</config-version>
         <scala-logging.version>2.1.2</scala-logging.version>
         <slf4j-version>1.7.13</slf4j-version>
+        <jcommander-version>1.30</jcommander-version>
+        <javamail-version>1.4.7</javamail-version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
+            <version>${scala-version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
-            <version>${config.version}</version>
+            <version>${config-version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
@@ -63,6 +66,11 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>${slf4j-version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>${jcommander-version}</version>
+        </dependency>
     </dependencies>
 
     <reporting>
@@ -71,7 +79,7 @@
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
+                    <scalaVersion>${scala-version}</scalaVersion>
                 </configuration>
             </plugin>
         </plugins>
