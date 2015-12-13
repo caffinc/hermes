@@ -8,11 +8,11 @@ import scala.util.Try
   */
 case class EmailParameters(
                             from: String,
+                            password: String,
                             to: List[String],
                             subject: String,
                             content: String,
-                            password: String,
-                            attachments: List[String]) {
+                            attachments: Option[List[String]] = None) {
   def validate: Try[EmailParameters] = {
     Try {
       new EmailParameters(
@@ -21,6 +21,12 @@ case class EmailParameters(
             throw new Exception("No \"from\" field")
           case `from` =>
             from
+        },
+        this.password match {
+          case null =>
+            throw new Exception("No \"password\" field")
+          case `password` =>
+            password
         },
         this.to match {
           case null =>
@@ -39,12 +45,6 @@ case class EmailParameters(
             ""
           case `content` =>
             content
-        },
-        this.password match {
-          case null =>
-            throw new Exception("No \"password\" field")
-          case `password` =>
-            password
         },
         this.attachments
       )

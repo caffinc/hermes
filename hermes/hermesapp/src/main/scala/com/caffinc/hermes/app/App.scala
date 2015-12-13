@@ -40,8 +40,8 @@ object App extends App with LazyLogging {
     case None =>
       "WUT"
   })
-  new Emailer().sendMail(new EmailParameters(Args.user, List("sriram@raremile.com"),
-    "Test Scala Emailer!", "Let's see if I can do this in Scala!", Args.password, null)) match {
+  new Emailer().sendMail(new EmailParameters(Args.user, Args.password, List("sriram@raremile.com"),
+    "Test Scala Emailer!", "Let's see if I can do this in Scala!")) match {
     case Success(_) =>
     // Do nothing
     case Failure(e) =>

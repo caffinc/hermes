@@ -64,27 +64,12 @@ class Emailer(mailProperties: Option[Properties] = None) extends LazyLogging {
           }
           message.setSubject(params.subject)
 
-          params.attachments == null || params.attachments.isEmpty match {
-            case true =>
+          params.attachments match {
+            case None =>
               message.setContent(params.content, "text/plain")
 
-            case false =>
-              val messageBodyPart: BodyPart = new MimeBodyPart
-              messageBodyPart.setText(params.content)
-              val multipart: Multipart = new MimeMultipart
-              multipart.addBodyPart(messageBodyPart)
-
-              params.attachments.foreach { path =>
-                val file: File = new File(path)
-                if (!file.exists) {
-                  throw new Exception("File " + path + " does not exist")
-                }
-                if (file.isDirectory) {
-                  throw new Exception("File " + path + " is a directory")
-                }
-                addAttachment(multipart, file)
-              }
-              message.setContent(multipart)
+            case Some(attachments) =>
+              message.setContent(getMessageContent(params))
           }
 
           logger.info("Attempting to send mail with params:")
@@ -93,9 +78,9 @@ class Emailer(mailProperties: Option[Properties] = None) extends LazyLogging {
           logger.info("  Subject: {}", params.subject)
           logger.info("  Content: {}", params.content)
           params.attachments match {
-            case null =>
+            case None =>
             // Do nothing
-            case attachments =>
+            case Some(attachments) =>
               logger.info("  Attachments: {}", attachments)
           }
           Transport.send(message)
@@ -104,5 +89,24 @@ class Emailer(mailProperties: Option[Properties] = None) extends LazyLogging {
       case Failure(e) =>
         Failure(e)
     }
+  }
+
+  def getMessageContent(params: EmailParameters): Multipart = {
+    val messageBodyPart: BodyPart = new MimeBodyPart
+    messageBodyPart.setText(params.content)
+    val multipart: Multipart = new MimeMultipart
+    multipart.addBodyPart(messageBodyPart)
+
+    params.attachments.get.foreach { path =>
+      val file: File = new File(path)
+      if (!file.exists) {
+        throw new Exception("File " + path + " does not exist")
+      }
+      if (file.isDirectory) {
+        throw new Exception("File " + path + " is a directory")
+      }
+      addAttachment(multipart, file)
+    }
+    multipart
   }
 }
