@@ -57,33 +57,8 @@ class Emailer(mailProperties: Option[Properties] = None) extends LazyLogging {
     params.validate match {
       case Success(`params`) =>
         Try {
-          val message: MimeMessage = new MimeMessage(session(params.from, params.password))
-          message.setFrom(new InternetAddress(params.from))
-          params.to.foreach { to =>
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to))
-          }
-          message.setSubject(params.subject)
-
-          params.attachments match {
-            case None =>
-              message.setContent(params.content, "text/plain")
-
-            case Some(attachments) =>
-              message.setContent(getMessageContent(params))
-          }
-
-          logger.info("Attempting to send mail with params:")
-          logger.info("  From: {}", params.from)
-          logger.info("  To: {}", params.to)
-          logger.info("  Subject: {}", params.subject)
-          logger.info("  Content: {}", params.content)
-          params.attachments match {
-            case None =>
-            // Do nothing
-            case Some(attachments) =>
-              logger.info("  Attachments: {}", attachments)
-          }
-          Transport.send(message)
+          logEmail(params)
+          Transport.send(getMessage(session(params.from, params.password))(params))
           logger.info("Mail sent successfully!")
         }
       case Failure(e) =>
@@ -91,7 +66,25 @@ class Emailer(mailProperties: Option[Properties] = None) extends LazyLogging {
     }
   }
 
-  def getMessageContent(params: EmailParameters): Multipart = {
+  private def getMessage(session: Session)(params: EmailParameters): Message = {
+    val message = new MimeMessage(session)
+    message.setFrom(new InternetAddress(params.from))
+    params.to.foreach { to =>
+      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to))
+    }
+    message.setSubject(params.subject)
+
+    params.attachments match {
+      case None =>
+        message.setContent(params.content, "text/plain")
+
+      case Some(attachments) =>
+        message.setContent(getMessageContent(params))
+    }
+    message
+  }
+
+  private def getMessageContent(params: EmailParameters): Multipart = {
     val messageBodyPart: BodyPart = new MimeBodyPart
     messageBodyPart.setText(params.content)
     val multipart: Multipart = new MimeMultipart
@@ -108,5 +101,19 @@ class Emailer(mailProperties: Option[Properties] = None) extends LazyLogging {
       addAttachment(multipart, file)
     }
     multipart
+  }
+
+  private def logEmail(params: EmailParameters): Unit = {
+    logger.info("Attempting to send mail with params:")
+    logger.info("  From: {}", params.from)
+    logger.info("  To: {}", params.to)
+    logger.info("  Subject: {}", params.subject)
+    logger.info("  Content: {}", params.content)
+    params.attachments match {
+      case None =>
+      // Do nothing
+      case Some(attachments) =>
+        logger.info("  Attachments: {}", attachments)
+    }
   }
 }

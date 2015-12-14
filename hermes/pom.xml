@@ -12,6 +12,7 @@
         <module>common</module>
         <module>hermesapp</module>
         <module>email</module>
+        <module>web</module>
     </modules>
 
     <repositories>
@@ -38,6 +39,8 @@
         <slf4j-version>1.7.13</slf4j-version>
         <jcommander-version>1.30</jcommander-version>
         <javamail-version>1.4.7</javamail-version>
+        <scalatra-version>2.3.1</scalatra-version>
+        <jetty-version>9.2.10.v20150310</jetty-version>
     </properties>
 
     <dependencies>
